@@ -34,9 +34,20 @@ fn start_server() -> Result<()> {
 fn start_stream() -> Result<()> {
     let mut stream = TcpStream::connect(IP_ADDR)?;
    
-    println!("connected, sending data");
+    println!("connected to {IP_ADDR}");
 
-    let buf: &[u8] = "hello there".as_bytes();
+    println!("Enter a message to send");
+    let mut to_send = String::new();
+    std::io::stdin().read_line(&mut to_send)
+        .expect("Failed to read input");
+
+    while to_send.len() > 32 {
+        println!("message is too long, enter another message under 32 characters in length:");
+        std::io::stdin().read_line(&mut to_send)
+            .expect("Failed to read input");
+    }
+
+    let buf: &[u8] = to_send.as_bytes();
     let _ = stream.write(&buf);
 
     Ok(())
