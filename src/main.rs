@@ -13,7 +13,7 @@ fn handle_client(mut stream: TcpStream) -> Result<()> {
     
     let mut reading: [u8; 32] = [0; 32];
 
-    stream.read(&mut reading)?;
+    let _ = stream.read(&mut reading)?;
     
     let to_str = std::str::from_utf8(&reading).unwrap();
     println!("{to_str}"); 
@@ -32,7 +32,7 @@ fn start_server() -> Result<()> {
     for stream in listener.incoming() {
         match stream {
             Ok(stream) => { let _ = handle_client(stream)?; }
-            Err (e) => { println!("Connection failed :("); }
+            Err (_e) => { println!("Connection failed :("); }
         }
     }
 
@@ -59,7 +59,7 @@ fn start_stream() -> Result<()> {
     let _ = stream.write(&buf);
 
     let mut buf: [u8; 32] = [0; 32];
-    stream.read(&mut buf);
+    let _ = stream.read(&mut buf);
     let to_str = std::str::from_utf8(&buf).unwrap();
     println!("{to_str}");
 
@@ -75,7 +75,7 @@ fn main() {
     
     if inp_str == "server\n".to_string() {
         println!("starting server");
-        dbg!(start_server());
+        let _ = start_server();
     } else {
         println!("starting stream");
         let _ = start_stream();
