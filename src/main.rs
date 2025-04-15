@@ -18,6 +18,9 @@ fn handle_client(mut stream: TcpStream) -> Result<()> {
     let to_str = std::str::from_utf8(&reading).unwrap();
     println!("{to_str}"); 
 
+    let writing: &[u8] = "message received".as_bytes();
+    let _ = stream.write(&writing);
+
     Ok(())
 }
 
@@ -27,7 +30,10 @@ fn start_server() -> Result<()> {
     println!("listening on {IP_ADDR}");
 
     for stream in listener.incoming() {
-        let _ = handle_client(stream?);
+        match stream {
+            Ok(stream) => { let _ = handle_client(stream)?; }
+            Err (e) => { println!("Connection failed :("); }
+        }
     }
 
     Ok(())
@@ -51,6 +57,11 @@ fn start_stream() -> Result<()> {
 
     let buf: &[u8] = to_send.as_bytes();
     let _ = stream.write(&buf);
+
+    let mut buf: [u8; 32] = [0; 32];
+    stream.read(&mut buf);
+    let to_str = std::str::from_utf8(&buf).unwrap();
+    println!("{to_str}");
 
     Ok(())
 }
