@@ -11,16 +11,21 @@ const IP_ADDR: &str = "127.0.0.1:8080";
 fn handle_client(mut stream: TcpStream) -> Result<()> {
     println!("{}", format!("new connection at {}", stream.local_addr().unwrap()));
     
-    let mut reading: [u8; 32] = [0; 32];
+    loop {
+        let mut reading: [u8; 32] = [0; 32];
 
-    let _ = stream.read(&mut reading)?;
+        let _ = stream.read(&mut reading)?;
+        if reading == [0; 32] { break; }
     
-    let to_str = std::str::from_utf8(&reading).unwrap();
-    println!("{to_str}"); 
+        let to_str = std::str::from_utf8(&reading).unwrap();
+        //dbg!(&reading);
+        println!("{to_str}"); 
 
-    let writing: &[u8] = "message received".as_bytes();
-    let _ = stream.write(&writing);
+        let writing: &[u8] = "message received".as_bytes();
+        let _ = stream.write(&writing);
+    }
 
+    println!("Connection closed");
     Ok(())
 }
 
@@ -44,24 +49,29 @@ fn start_stream() -> Result<()> {
    
     println!("connected to {IP_ADDR}");
 
-    println!("Enter a message to send");
-    let mut to_send = String::new();
-    std::io::stdin().read_line(&mut to_send)
-        .expect("Failed to read input");
-
-    while to_send.len() > 32 {
-        println!("message is too long, enter another message under 32 characters in length:");
+    println!("Enter a message to send, or `quit` to quit");
+    
+    loop {
+        let mut to_send = String::new();
         std::io::stdin().read_line(&mut to_send)
             .expect("Failed to read input");
+
+        while to_send.len() > 32 {
+            println!("message is too long, enter another message under 32 characters in length:");
+            std::io::stdin().read_line(&mut to_send)
+                .expect("Failed to read input");
+        }
+
+        if to_send == "quit\n".to_string() { break; }
+
+        let buf: &[u8] = to_send.as_bytes();
+        let _ = stream.write(&buf);
+
+        let mut buf: [u8; 32] = [0; 32];
+        let _ = stream.read(&mut buf);
+        let to_str = std::str::from_utf8(&buf).unwrap();
+        println!("{to_str}");
     }
-
-    let buf: &[u8] = to_send.as_bytes();
-    let _ = stream.write(&buf);
-
-    let mut buf: [u8; 32] = [0; 32];
-    let _ = stream.read(&mut buf);
-    let to_str = std::str::from_utf8(&buf).unwrap();
-    println!("{to_str}");
 
     Ok(())
 }
