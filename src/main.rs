@@ -9,6 +9,8 @@ use std::io::Result;
 const IP_ADDR: &str = "127.0.0.1:8080";
 
 fn handle_client(mut stream: TcpStream) -> Result<()> {
+    println!("{}", format!("new connection at {}", stream.local_addr().unwrap()));
+    
     let mut reading: [u8; 32] = [0; 32];
 
     stream.read(&mut reading)?;
