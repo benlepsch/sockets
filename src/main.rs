@@ -12,7 +12,9 @@ fn handle_client(mut stream: TcpStream) -> Result<()> {
     let mut reading: [u8; 32] = [0; 32];
 
     stream.read(&mut reading)?;
-    dbg!(reading);
+    
+    let to_str = std::str::from_utf8(&reading).unwrap();
+    println!("{to_str}"); 
 
     Ok(())
 }
