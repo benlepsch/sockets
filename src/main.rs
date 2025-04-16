@@ -6,7 +6,7 @@ use std::net::{
 use std::io::prelude::*;
 use std::io::Result;
 
-const IP_ADDR: &str = "127.0.0.1:8080";
+const IP_ADDR: &str = "71.242.0.12:53";
 
 fn handle_client(mut stream: TcpStream) -> Result<()> {
     println!("{}", format!("new connection at {}", stream.local_addr().unwrap()));
@@ -48,10 +48,10 @@ fn start_stream() -> Result<()> {
     let mut stream = TcpStream::connect(IP_ADDR)?;
    
     println!("connected to {IP_ADDR}");
-
+/*
     println!("Enter a message to send, or `quit` to quit");
     
-    loop {
+    //loop {
         let mut to_send = String::new();
         std::io::stdin().read_line(&mut to_send)
             .expect("Failed to read input");
@@ -61,17 +61,26 @@ fn start_stream() -> Result<()> {
             std::io::stdin().read_line(&mut to_send)
                 .expect("Failed to read input");
         }
+*/
+      //  if to_send == "quit\n".to_string() { break; }
 
-        if to_send == "quit\n".to_string() { break; }
-
-        let buf: &[u8] = to_send.as_bytes();
+        //let buf: &[u8] = to_send.as_bytes();
+        let buf = vec![0x00, 0x1a, 0x10, 0x55, 0x01, 0x00, 0x00, 
+            0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x05, 0x62, 0x6c,
+            0x65, 0x70, 0x73, 0x02, 0x63, 0x68, 0x00, 0x00, 0x01, 0x00, 0x01];
         let _ = stream.write(&buf);
+    
+        let mut len: [u8; 2] = [0; 2];
+        let _ = stream.read(&mut len);
+        let msg_length = (len[0] << 4) + len[1];
+        println!("response length: {msg_length}");
 
-        let mut buf: [u8; 32] = [0; 32];
-        let _ = stream.read(&mut buf);
-        let to_str = std::str::from_utf8(&buf).unwrap();
-        println!("{to_str}");
-    }
+        let mut buf = [0; 256];// vec![0, msg_length];
+        let _ = stream.read(&mut buf[..]);
+        dbg!(buf);
+        //let to_str = std::str::from_utf8(&buf).unwrap();
+        //println!("{to_str}");
+    //}
 
     Ok(())
 }
