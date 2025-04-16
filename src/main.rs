@@ -74,7 +74,7 @@ fn start_stream() -> Result<()> {
         //let _ = stream.read(&mut len);
 
         let mut buf = [0; 256];
-        let _ = stream.read(&mut buf[..]);
+        let _ = stream.read(&mut buf);
         // dbg!(buf);
 
         /*
@@ -123,17 +123,36 @@ fn start_stream() -> Result<()> {
             // read two-byte type
             // read two-byte class
         */
-        let mut on_idx = 10;
-        let mut on_name = true;
-        let mut name = Vec::new();
+        
+        // ignore authority & additional RRs
+        let mut buf = buf[14..].to_vec();
+        
         for i in 0..questions {
-            if on_name && buf[i + on_idx] != 0 {
-                name.push(buf[i + on_idx]);
-            } else { 
-                on_name = false;
-                let q_type = buf[i + on_idx + 1..i + on_idx + 3];
-
+            let mut j = 0;
+            let mut name = String::new();
+            
+            while buf[j] != 0 {
+                println!("on char {}", buf[j]);
+                let mut c: char;
+                
+                if buf[j] == 2 { 
+                    c = '.'; 
+                } else {
+                    c = std::char::from_u32(buf[j] as u32).unwrap();
+                }
+                
+                name.push(c);
+                j += 1;
             }
+            
+            // while loop finishes on 0 char
+            let q_type = (buf[j+1] << 4) + buf[j+2];
+            let q_class = (buf[j+3] << 4) + buf[j+4];
+
+            println!("Question:");
+            println!("\turl:\t{name}");
+            println!("\ttype:\t{:#x}", q_type);
+            println!("\tclass:\t{:#x}", q_class);
         }
 
         //let to_str = std::str::from_utf8(&buf).unwrap();
