@@ -6,7 +6,7 @@ use std::net::{
 use std::io::prelude::*;
 use std::io::Result;
 
-const IP_ADDR: &str = "71.242.0.12:53";
+const IP_ADDR: &str = "bleps.ch:80";//"71.242.0.12:53";
 
 fn handle_client(mut stream: TcpStream) -> Result<()> {
     println!("{}", format!("new connection at {}", stream.local_addr().unwrap()));
