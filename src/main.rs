@@ -105,7 +105,7 @@ fn start_stream() -> Result<()> {
         println!("Message Length: {msg_len}");
         
         let trans_id = (buf[2] << 4) + buf[3];
-        println!("Transaction ID: {:#x}", trans_id);
+        println!("Transaction ID: {:#06x}", trans_id);
 
         let flags = (buf[4] << 4) + buf[5];
         println!("Flags: {:#b}", flags);
@@ -132,7 +132,6 @@ fn start_stream() -> Result<()> {
             let mut name = String::new();
             
             while buf[j] != 0 {
-                println!("on char {}", buf[j]);
                 let mut c: char;
                 
                 if buf[j] == 2 { 
@@ -149,10 +148,10 @@ fn start_stream() -> Result<()> {
             let q_type = (buf[j+1] << 4) + buf[j+2];
             let q_class = (buf[j+3] << 4) + buf[j+4];
 
-            println!("Question:");
+            println!("Query:");
             println!("\turl:\t{name}");
-            println!("\ttype:\t{:#x}", q_type);
-            println!("\tclass:\t{:#x}", q_class);
+            println!("\ttype:\t{:#04x}", q_type);
+            println!("\tclass:\t{:#04x}", q_class);
         }
 
         //let to_str = std::str::from_utf8(&buf).unwrap();
