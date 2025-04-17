@@ -8,7 +8,7 @@ use std::io::Result;
 
 mod HttpRequest;
 
-const IP_ADDR: &str = "bleps.ch:80";//"71.242.0.12:53";
+const IP_ADDR: &str = "bleps.ch:80";
 
 fn start_stream() -> Result<()> {
     let mut stream = TcpStream::connect(IP_ADDR)?;   
@@ -22,19 +22,44 @@ fn start_stream() -> Result<()> {
     let _ = stream.write(&req.serialize());
 
     println!("Reading reply");
-    let mut buf = Vec::new(); //[0; 256];
+    /*
+
+    headers = []
+    while last two bytes are not "\r\n" {
+        current = ''
+        while last two bytes are not "\r\n" {
+            push onto current
+        }
+        push to headers
+        read out the next two bytes
+    }
+
+    */
+    let mut headers = Vec::new();
     let mut tmp = [0; 1];
-    let mut last: u8;
+    let mut last: u8 = 0;
     
-    stream.read(&mut tmp).expect("something wrong");
+    stream.read(&mut tmp).expect("someting wrong");
     last = tmp[0];
-    stream.read(&mut tmp).expect("somsething wrong");
-    
-    while tmp[0] != 0 && last != 0 {
-        println!("pushing byte {}", last as char); 
-        buf.push(last);
-        last = tmp[0];
+    stream.read(&mut tmp).expect("somethign wrong");
+
+    // "\r\n" = 0x0d 0x0a
+    while last != 13 && tmp[0] != 10 {
+        let mut current = String::new();
+
+        while last != 13 && tmp[0] != 10 {
+            current.push(last as char);
+            last = tmp[0];
+            stream.read(&mut tmp).expect("something wrong");
+        }
+
+        headers.push(current);
+
+        // 0x0d 0x0a 0x.. 0x.. 0x.. 
+        // last tmp 
         stream.read(&mut tmp).expect("something wrong");
+        last = tmp[0];
+        stream.read(&mut tmp).expect("somethg wrong");
     }
     
     println!("done");
