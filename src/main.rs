@@ -1,39 +1,40 @@
-use std::net::{
-//    TcpListener,
-    TcpStream
-};
+use std::net::TcpStream;
 
 use std::io::prelude::*;
-use std::io::Result;
+use std::io::{Result, stdin, Write};
+
+use std::fs;
+use std::env;
 
 mod HttpRequest;
 
-const IP_ADDR: &str = "bleps.ch:80";
+fn path_exists(path: &str) -> bool {
+    fs::metadata(path).is_ok()
+}
 
-fn start_stream() -> Result<()> {
-    let mut stream = TcpStream::connect(IP_ADDR)?;   
-    println!("connected to {IP_ADDR}");
+fn fetch_data(url: String) -> Result<String> {
+    let ip_addr = format!("{}{}", url, ":80");
+    let mut stream = TcpStream::connect(ip_addr)?;   
+    println!("connected to {ip_addr}");
 
     println!("Building GET request");
     let req = HttpRequest::HttpRequest::new(
-        HttpRequest::MethodKind::GET, "bleps.ch".to_string(), None);
+        HttpRequest::MethodKind::GET, url, None);
 
     println!("Sending request to server");
     let _ = stream.write(&req.serialize());
 
     println!("Reading reply");
     /*
-
-    headers = []
-    while last two bytes are not "\r\n" {
-        current = ''
+        headers = []
         while last two bytes are not "\r\n" {
-            push onto current
+            current = ''
+            while last two bytes are not "\r\n" {
+                push onto current
+            }
+            push to headers
+            read out the next two bytes
         }
-        push to headers
-        read out the next two bytes
-    }
-
     */
     let mut headers = Vec::new();
     let mut tmp = [0; 1];
@@ -62,15 +63,14 @@ fn start_stream() -> Result<()> {
         stream.read(&mut tmp).expect("somethg wrong");
     }
     
-    println!("done");
-    // dbg!(&headers);
+    // println!("done");
+    dbg!(&headers);
 
     let http_resp = headers[0].clone();
     headers.remove(0);
 
     let header_map: std::collections::HashMap<&str, &str> = headers.iter()
         .map(|header| {
-            // println!("mapping header: {}", header);
             let mut split = header.split(": ");
             (split.next().unwrap(), split.next().unwrap())
         })
@@ -82,13 +82,58 @@ fn start_stream() -> Result<()> {
     stream.read(&mut buf).expect("somethign wrong (last)");
 
     let to_str = std::str::from_utf8(&buf).unwrap();
-    println!("{to_str}");
-
-    Ok(())
+    Ok(to_str)
 }
 
 fn main() {
-    println!("connecting to {IP_ADDR}");
+    let mut args: Vec<String> = env::args().collect();
 
-    let _ = start_stream();
+    if args.len() < 2 {
+        println!("no url in arguments, please enter the url to fetch:");
+
+        let mut inp_str = String::new();
+        stdin().read_line(&mut inp_str)
+            .expect("Failed to read input");
+        
+        args.push(inp_str[0..(inp_str.len()-1)].to_string());
+    }
+
+    let mut filename = args[1].clone();
+
+    if filename.contains("/") {
+        // set filename to string contents after the last '/'
+        for (i, c) in filename.chars().rev().enumerate() {
+            if c == '/' {
+                filename = filename[i..filename.len()].to_string();
+                break;
+            }
+        }
+    } else {
+        filename = "index.html".to_string();
+    }
+
+    println!("using filename {}", &filename);
+    let mut modded = false;
+    let mut n = 2;
+    while path_exists(&filename) {
+        if !modded {
+            filename = format!("{} ({})", filename, 1);
+            modded = true;
+        } else {
+            filename = format!("{} ({})", filename[0..(filename.len()-4)].to_string(), n);
+            n += 1;
+        } 
+        
+        println!("filename taken, using filename {}", &filename);
+    }
+
+    let html = fetch_data(args[1]).unwrap();
+
+    println!("saving to '{}' ", &filename);
+
+    let mut write_out = fs::File::create(filename)
+                                .expect("cmon now");
+
+    write_out.write_all(&html.as_bytes())
+                .expect("sure hope that write worked");
 }
