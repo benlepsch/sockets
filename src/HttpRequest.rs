@@ -6,7 +6,7 @@ pub struct HttpRequest {
 }
 
 impl HttpRequest {
-    pub fn new(&self, method: String, url: String, protocol: Option<String>) {
+    pub fn new(&mut self, method: String, url: String, protocol: Option<String>) {
         self.method = method;
         self.url = url;
 
@@ -23,8 +23,8 @@ impl HttpRequest {
             Host: bleps.ch\r\n
             <Headers>
         */
-        let mut out_str = &self.method + " / " + &self.protocol + "\r\n";
-        out_str += "Host: " + &self.url + "\r\n";
+        let mut out_str = self.method + " / " + &self.protocol + "\r\n";
+        out_str += "Host: ".to_owned() + &self.url + "\r\n";
 
         // TODO: add headers
 
