@@ -1,9 +1,9 @@
 pub struct HttpRequest {
     method: String,
     url: String,
-    protocol: Option<String>,
+    protocol: String,
     headers: Vec<String>,
-};
+}
 
 impl HttpRequest {
     pub fn new(&self, method: String, url: String, protocol: Option<String>) {
@@ -12,7 +12,7 @@ impl HttpRequest {
 
         match protocol {
             Some(p) => { self.protocol = p; },
-            None => { self.protocol = "HTTP/1.1"; },
+            None => { self.protocol = "HTTP/1.1".to_string(); },
         }
     }
 
@@ -23,8 +23,8 @@ impl HttpRequest {
             Host: bleps.ch\r\n
             <Headers>
         */
-        let mut out_str = self.method + " / " + self.protocol + "\r\n";
-        out_str += "Host: " + self.url + "\r\n";
+        let mut out_str = &self.method + " / " + &self.protocol + "\r\n";
+        out_str += "Host: " + &self.url + "\r\n";
 
         // TODO: add headers
 
