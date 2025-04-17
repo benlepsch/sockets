@@ -1,12 +1,18 @@
+pub enum MethodKind {
+    GET,
+    POST,
+    PUT,
+}
+
 pub struct HttpRequest {
-    method: String,
+    method: MethodKind,
     url: String,
     protocol: String,
     headers: Vec<String>,
 }
 
 impl HttpRequest {
-    pub fn new(&mut self, method: String, url: String, protocol: Option<String>) {
+    pub fn new(&mut self, method: MethodKind, url: String, protocol: Option<String>) {
         self.method = method;
         self.url = url;
 
@@ -23,8 +29,15 @@ impl HttpRequest {
             Host: bleps.ch\r\n
             <Headers>
         */
-        let mut out_str = self.method + " / " + &self.protocol + "\r\n";
-        out_str += "Host: ".to_owned() + &self.url + "\r\n";
+        
+        let meth = match self.method {
+            MethodKind::GET => "GET",
+            MethodKind::POST => "POST",
+            MethodKind::PUT => "PUT",
+        };
+        
+        let mut out_str = format!("{} / {}\r\n", meth, &self.protocol);
+        out_str = format!("{}Host: {}\r\n", out_str, self.url);
 
         // TODO: add headers
 

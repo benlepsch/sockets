@@ -1,5 +1,5 @@
 use std::net::{
-    TcpListener,
+//    TcpListener,
     TcpStream
 };
 
@@ -21,7 +21,7 @@ fn start_stream() -> Result<()> {
     //     0x65, 0x70, 0x73, 0x02, 0x63, 0x68, 0x00, 0x00, 0x01, 0x00, 0x01];
 
     println!("Building GET request");
-    let req = HttpRequest::new("GET", "bleps.ch");
+    let req = HttpRequest::new(HttpRequest::MethodKind::GET, "bleps.ch", None);
 
     println!("Sending request to server");
     let _ = stream.write(&req.serialize());
