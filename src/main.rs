@@ -63,14 +63,26 @@ fn start_stream() -> Result<()> {
     }
     
     println!("done");
-    // dbg!(&buf);
-    let s = match std::str::from_utf8(&buf) {
-        Ok(v) => v,
-        Err(e) => panic!("Invalid utf8 sequence: {}", e),
-    };
+    // dbg!(&headers);
 
-    println!("{}", &s);
+    let http_resp = headers[0].clone();
+    headers.remove(0);
 
+    let header_map: std::collections::HashMap<&str, &str> = headers.iter()
+        .map(|header| {
+            // println!("mapping header: {}", header);
+            let mut split = header.split(": ");
+            (split.next().unwrap(), split.next().unwrap())
+        })
+        .collect();
+
+    // dbg!(&header_map);
+    let msg_length = header_map["Content-Length"].parse::<usize>().unwrap();
+    let mut buf = vec![0; msg_length];
+    stream.read(&mut buf).expect("somethign wrong (last)");
+
+    let to_str = std::str::from_utf8(&buf).unwrap();
+    println!("{to_str}");
 
     Ok(())
 }
