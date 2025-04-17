@@ -38,7 +38,7 @@ fn fetch_data(url: String) -> Result<String> {
     */
     let mut headers = Vec::new();
     let mut tmp = [0; 1];
-    let mut last: u8 = 0;
+    let mut last: u8;
     
     stream.read(&mut tmp).expect("someting wrong");
     last = tmp[0];
@@ -64,9 +64,9 @@ fn fetch_data(url: String) -> Result<String> {
     }
     
     // println!("done");
-    dbg!(&headers);
+    // dbg!(&headers);
 
-    let http_resp = headers[0].clone();
+    let _http_resp = headers[0].clone();
     headers.remove(0);
 
     let header_map: std::collections::HashMap<&str, &str> = headers.iter()
