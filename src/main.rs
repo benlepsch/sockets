@@ -14,7 +14,7 @@ fn path_exists(path: &str) -> bool {
 
 fn fetch_data(url: String) -> Result<String> {
     let ip_addr = format!("{}{}", url, ":80");
-    let mut stream = TcpStream::connect(ip_addr)?;   
+    let mut stream = TcpStream::connect(&ip_addr)?;   
     println!("connected to {ip_addr}");
 
     println!("Building GET request");
@@ -81,7 +81,7 @@ fn fetch_data(url: String) -> Result<String> {
     let mut buf = vec![0; msg_length];
     stream.read(&mut buf).expect("somethign wrong (last)");
 
-    let to_str = std::str::from_utf8(&buf).unwrap();
+    let to_str = std::str::from_utf8(&buf).unwrap().to_string();
     Ok(to_str)
 }
 
@@ -127,7 +127,7 @@ fn main() {
         println!("filename taken, using filename {}", &filename);
     }
 
-    let html = fetch_data(args[1]).unwrap();
+    let html = fetch_data(args[1].clone()).unwrap();
 
     println!("saving to '{}' ", &filename);
 
