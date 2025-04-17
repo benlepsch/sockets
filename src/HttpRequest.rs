@@ -8,17 +8,18 @@ pub struct HttpRequest {
     method: MethodKind,
     url: String,
     protocol: String,
-    headers: Vec<String>,
+    // headers: Vec<String>,
 }
 
 impl HttpRequest {
-    pub fn new(&mut self, method: MethodKind, url: String, protocol: Option<String>) {
-        self.method = method;
-        self.url = url;
-
-        match protocol {
-            Some(p) => { self.protocol = p; },
-            None => { self.protocol = "HTTP/1.1".to_string(); },
+    pub fn new(method: MethodKind, url: String, protocol: Option<String>) -> HttpRequest {
+        HttpRequest {
+            method: method,
+            url: url,
+            protocol: match protocol {
+                Some(p) => p,
+                None => "HTTP/1.1".to_string(),
+            },
         }
     }
 
@@ -40,7 +41,8 @@ impl HttpRequest {
         out_str = format!("{}Host: {}\r\n", out_str, self.url);
 
         // TODO: add headers
-
+        
+        out_str = format!("{}\r\n", out_str);
         out_str.into_bytes()
     }
 }

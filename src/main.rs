@@ -21,7 +21,8 @@ fn start_stream() -> Result<()> {
     //     0x65, 0x70, 0x73, 0x02, 0x63, 0x68, 0x00, 0x00, 0x01, 0x00, 0x01];
 
     println!("Building GET request");
-    let req = HttpRequest::new(HttpRequest::MethodKind::GET, "bleps.ch", None);
+    let req = HttpRequest::HttpRequest::new(
+        HttpRequest::MethodKind::GET, "bleps.ch".to_string(), None);
 
     println!("Sending request to server");
     let _ = stream.write(&req.serialize());
@@ -30,7 +31,13 @@ fn start_stream() -> Result<()> {
     let mut buf = [0; 256];
     stream.read(&mut buf).expect("something has gone wrong in the read function");
     
-    dbg!(&buf);
+    // dbg!(&buf);
+    let s = match std::str::from_utf8(&buf) {
+        Ok(v) => v,
+        Err(e) => panic!("Invalid utf8 sequence: {}", e),
+    };
+
+    println!("{}", &s);
 
 
     Ok(())
