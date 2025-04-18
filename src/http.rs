@@ -26,14 +26,14 @@ impl HttpRequest {
         }
     }
 
-    pub fn header(&self, key: String, val: String) -> HttpRequest {
-        if !self.headers.contains_key(key) {
+    pub fn header(&self, key: String, val: String) -> &HttpRequest {
+        if !self.headers.contains_key(&key) {
             self.headers.insert(key, val);
         } else {
-            self.headers.key = val;
+            self.headers[key] = val;
         }
 
-        &self
+        self
     }
 
     pub fn serialize(&self) -> Vec<u8> {
@@ -53,7 +53,7 @@ impl HttpRequest {
         let mut out_str = format!("{} / {}\r\n", meth, &self.protocol);
         out_str = format!("{}Host: {}\r\n", out_str, self.url);
 
-        for (k, v) in self.headers {
+        for (k, v) in &self.headers {
             out_str = format!("{}{}: {}\r\n", out_str, k, v);
         }
         
