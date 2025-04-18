@@ -26,12 +26,8 @@ impl HttpRequest {
         }
     }
 
-    pub fn header(&self, key: String, val: String) -> &HttpRequest {
-        if !self.headers.contains_key(&key) {
-            self.headers.insert(key, val);
-        } else {
-            self.headers[key] = val;
-        }
+    pub fn header(&mut self, key: String, val: String) -> &HttpRequest {
+        self.headers.insert(key, val);
 
         self
     }
