@@ -88,7 +88,7 @@ impl HttpResponse {
         }
     }
 
-    pub fn from(stream: TcpStream) -> HttpResponse {
+    pub fn from(mut stream: TcpStream) -> HttpResponse {
         let mut headers_vec = Vec::new();
         let mut tmp = [0; 1];
         let mut last: u8;
@@ -116,18 +116,19 @@ impl HttpResponse {
 
         // get response code & message
         // HTTP/1.1 200 OK
-        let http_resp = headers_vec[0].clone().split(" ");
+        let binding = headers_vec[0].clone();
+        let mut http_resp = binding.split(" ");
         let protocol = http_resp.next().unwrap();
         let status_code = http_resp.next().unwrap();
-        let status_msg = http_resp.fold("", |acc, word| format!("{} {}", acc, word));
+        let status_msg = http_resp.fold("".to_string(), |acc, word| format!("{} {}", acc, word));
         
 
         headers_vec.remove(0);
 
-        let header_map: HashMap<&str, &str> = headers_vec.iter()
+        let header_map: HashMap<String, String> = headers_vec.iter()
             .map(|header| {
                 let mut split = header.split(": ");
-                (split.next().unwrap(), split.next().unwrap())
+                (split.next().unwrap().to_string(), split.next().unwrap().to_string())
             })
             .collect();
         
@@ -156,9 +157,9 @@ impl HttpResponse {
         self
     }
 
-    pub fn serialize(&self) -> Vec<u8> {
+    pub fn serialize(&mut self) -> Vec<u8> {
         // set content-length header
-        self.headers.insert("Content-Length", match self.body {
+        self.headers.insert("Content-Length".to_string(), match &self.body {
             Some(b) => b.len().to_string(),
             None => "0".to_string(),
         });
