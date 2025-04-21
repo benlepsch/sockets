@@ -70,7 +70,7 @@ pub struct HttpResponse {
     protocol: String,
     status_code: u32,
     status_msg: String,
-    headers: HashMap<&str, &str>,
+    headers: HashMap<String, String>,
     body: Option<String>,
 }
 
