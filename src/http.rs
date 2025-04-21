@@ -1,4 +1,7 @@
 use std::collections::HashMap;
+use std::net::TcpStream;
+use std::io::prelude::*;
+use std::str::from_utf8;
 
 pub enum MethodKind {
     GET,
@@ -25,6 +28,10 @@ impl HttpRequest {
             headers: HashMap::new(),
         }
     }
+
+    // pub fn from(stream: TcpStream) -> HttpRequest {
+    //     // todo: this
+    // }
 
     pub fn header(&mut self, key: String, val: String) -> &HttpRequest {
         self.headers.insert(key, val);
@@ -78,6 +85,62 @@ impl HttpResponse {
             status_msg: status_msg,
             headers: HashMap::new(),
             body: None,
+        }
+    }
+
+    pub fn from(stream: TcpStream) -> HttpResponse {
+        let mut headers_vec = Vec::new();
+        let mut tmp = [0; 1];
+        let mut last: u8;
+
+        stream.read(&mut tmp).expect("Failed to read from stream 1");
+        last = tmp[0];
+        stream.read(&mut tmp).expect("Failed to read from stream 2");
+
+        // read until \r\n
+        while last != b'\r' && tmp[0] != b'\n' {
+            let mut current = String::new();
+
+            while last != b'\r' && tmp[0] != b'\n' {
+                current.push(last as char);
+                last = tmp[0];
+                stream.read(&mut tmp).expect("Failed to read from string 3");
+            }
+
+            headers_vec.push(current);
+
+            stream.read(&mut tmp).expect("Failed to read from stream 4");
+            last = tmp[0];
+            stream.read(&mut tmp).expect("Failed to read from stream 5");
+        }
+
+        // get response code & message
+        // HTTP/1.1 200 OK
+        let http_resp = headers_vec[0].clone().split(" ");
+        let protocol = http_resp.next().unwrap();
+        let status_code = http_resp.next().unwrap();
+        let status_msg = http_resp.fold("", |acc, word| format!("{} {}", acc, word));
+        
+
+        headers_vec.remove(0);
+
+        let header_map: HashMap<&str, &str> = headers_vec.iter()
+            .map(|header| {
+                let mut split = header.split(": ");
+                (split.next().unwrap(), split.next().unwrap())
+            })
+            .collect();
+        
+        let msg_length = header_map["Content-Length"].parse::<usize>().unwrap();
+        let mut buf = vec![0; msg_length];
+        stream.read(&mut buf).expect("Failed to read body from stream");
+
+        HttpResponse {
+            protocol: protocol,
+            status_code: status_code.parse::<u32>().unwrap(),
+            status_msg: status_msg,
+            headers: header_map,
+            body: Some(from_utf8(&buf).unwrap().to_string()),
         }
     }
 
