@@ -70,14 +70,14 @@ pub struct HttpResponse {
     protocol: String,
     status_code: u32,
     status_msg: String,
-    headers: HashMap<String, String>,
+    headers: HashMap<&str, &str>,
     body: Option<String>,
 }
 
 impl HttpResponse {
     pub fn new(status_code: u32, status_msg: String, protocol: Option<String>) -> HttpResponse {
         HttpResponse {
-            protocol: match protocol => {
+            protocol: match protocol {
                 Some(p) => p,
                 None => { "HTTP/1.1".to_string() },
             },
@@ -136,9 +136,9 @@ impl HttpResponse {
         stream.read(&mut buf).expect("Failed to read body from stream");
 
         HttpResponse {
-            protocol: protocol,
+            protocol: protocol.to_string(),
             status_code: status_code.parse::<u32>().unwrap(),
-            status_msg: status_msg,
+            status_msg: status_msg.to_string(),
             headers: header_map,
             body: Some(from_utf8(&buf).unwrap().to_string()),
         }
